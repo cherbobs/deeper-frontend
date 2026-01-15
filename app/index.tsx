@@ -10,7 +10,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Choisis ton mode</Text>
 
-      <AppButton label="Couple" onPress={() => router.push("/couple")} />
+      <AppButton label="Couple" onPress={() => router.push("/questions")} />
       <AppButton label="Amitié" onPress={() => console.log("Amitié")} />
       <AppButton
         label="Première rencontre"
