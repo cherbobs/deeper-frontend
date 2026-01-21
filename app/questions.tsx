@@ -7,10 +7,12 @@ import React, { useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { data } from "@/src/data/data";
 import Card from "@/components/Card";
+import { useSharedValue } from "react-native-reanimated";
 
 export default function QuestionsScreen() {
   const [newData, setNewData] = useState([...data, ...data]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const animatedValue = useSharedValue(0);
   const MAX = 3;
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -28,6 +30,7 @@ export default function QuestionsScreen() {
                 dataLength={newData.length}
                 maxVisibleItem={MAX}
                 currentIndex={currentIndex}
+                animatedValue={animatedValue}
               />
             );
           })}

@@ -3,7 +3,10 @@ import React from "react";
 import { DataType } from "@/src/data/data";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+    Extrapolation,
   getAnimatedStyle,
+  interpolate,
+  SharedValue,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -15,6 +18,7 @@ type Props = {
   dataLength: number;
   maxVisibleItem: number;
   currentIndex: number;
+  animatedValue: SharedValue<number>;
 };
 
 const Card = ({
@@ -23,14 +27,15 @@ const Card = ({
   dataLength,
   maxVisibleItem,
   currentIndex,
+  animatedValue,
 }: Props) => {
   const { width } = useWindowDimensions();
   const translateX = useSharedValue(0);
   const direction = useSharedValue(0);
   const pan = Gesture.Pan()
     .onUpdate((e) => {
-        const isSwipeRight = e.translationX > 0;
-        direction.value = isSwipeRight ? 1 : -1;
+      const isSwipeRight = e.translationX > 0;
+      direction.value = isSwipeRight ? 1 : -1;
       console.log(e.translationX);
       if (currentIndex === index) {
         translateX.value = e.translationX;
@@ -39,15 +44,22 @@ const Card = ({
 
     .onEnd((e) => {
       if (currentIndex === index) {
-        if(Math.abs(e.translationX) > 150){
-            translateX.value = withTiming(width * direction.value);
+        if (Math.abs(e.translationX) > 150 || Math.abs(e.velocityX) > 1000) {
+          translateX.value = withTiming(width * direction.value);
         } else {
-            translateX.value = withTiming(0, {duration: 500});
+          translateX.value = withTiming(0, { duration: 500 });
         }
       }
     });
 
   const animatedStyle = useAnimatedStyle(() => {
+    const currentItem = index === currentIndex;
+    const rotateZ = interpolate(
+      Math.abs(translateX.value),
+      [0, 20],
+      [0, 10],
+      Extrapolation.CLAMP
+    );
     return {
       transform: [
         { translateX: translateX.value },
@@ -55,6 +67,7 @@ const Card = ({
         {
           translateY: index * -30,
         },
+        { rotateZ: currentItem ? `${direction.value * rotateZ}deg` : `0deg` },
       ],
       opacity: index < maxVisibleItem ? 1 : 0,
     };
