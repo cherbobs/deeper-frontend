@@ -10,7 +10,7 @@ export interface DataType {
 const data: DataType[] = [
   {
     cardId: 1,
-    text: "Rakha Wibowo",
+    text: "Tu préfères être un cure-dent ou une dent pourrie",
     backgroundColor: "#6d85a4",
   },
   {
