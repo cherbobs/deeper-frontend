@@ -22,6 +22,7 @@ type Props = {
   animatedValue: SharedValue<number>;
   setNewData: React.Dispatch<React.SetStateAction<DataType[]>>;
   setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
+  newData: DataType[];
 };
 
 const Card = ({
@@ -33,6 +34,7 @@ const Card = ({
   animatedValue,
   setCurrentIndex,
   setNewData,
+  newData,
 }: Props) => {
   const { width } = useWindowDimensions();
   const translateX = useSharedValue(0);
@@ -61,6 +63,7 @@ const Card = ({
             {},
             () => {
               runOnJS(setCurrentIndex)(currentIndex + 1);
+              runOnJS(setNewData)([...newData, newData[currentIndex]])
             }
           );
           animatedValue.value = withTiming(currentIndex + 1);

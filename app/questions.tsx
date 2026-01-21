@@ -33,6 +33,7 @@ export default function QuestionsScreen() {
                 animatedValue={animatedValue}
                 setCurrentIndex={setCurrentIndex}
                 setNewData={setNewData}
+                newData={newData}
               />
             );
           })}
