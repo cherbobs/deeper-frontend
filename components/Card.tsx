@@ -3,13 +3,14 @@ import React from "react";
 import { DataType } from "@/src/data/data";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
-    Extrapolation,
+  Extrapolation,
   getAnimatedStyle,
   interpolate,
   SharedValue,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  runOnJS,
 } from "react-native-reanimated";
 
 type Props = {
@@ -19,6 +20,8 @@ type Props = {
   maxVisibleItem: number;
   currentIndex: number;
   animatedValue: SharedValue<number>;
+  setNewData: React.Dispatch<React.SetStateAction<DataType[]>>;
+  setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
 };
 
 const Card = ({
@@ -28,6 +31,8 @@ const Card = ({
   maxVisibleItem,
   currentIndex,
   animatedValue,
+  setCurrentIndex,
+  setNewData,
 }: Props) => {
   const { width } = useWindowDimensions();
   const translateX = useSharedValue(0);
@@ -39,15 +44,29 @@ const Card = ({
       console.log(e.translationX);
       if (currentIndex === index) {
         translateX.value = e.translationX;
+        animatedValue.value = interpolate(
+          Math.abs(e.translationX),
+          [0, width],
+          [index, index + 1]
+        );
+        console.log(animatedValue.value);
       }
     })
 
     .onEnd((e) => {
       if (currentIndex === index) {
         if (Math.abs(e.translationX) > 150 || Math.abs(e.velocityX) > 1000) {
-          translateX.value = withTiming(width * direction.value);
+          translateX.value = withTiming(
+            (width + 200) * direction.value,
+            {},
+            () => {
+              runOnJS(setCurrentIndex)(currentIndex + 1);
+            }
+          );
+          animatedValue.value = withTiming(currentIndex + 1);
         } else {
           translateX.value = withTiming(0, { duration: 500 });
+          animatedValue.value = withTiming(currentIndex);
         }
       }
     });
@@ -60,16 +79,35 @@ const Card = ({
       [0, 10],
       Extrapolation.CLAMP
     );
+
+    const translateY = interpolate(
+      animatedValue.value,
+      [index - 1, index],
+      [-30, 0]
+    );
+
+    const scale = interpolate(
+      animatedValue.value,
+      [index - 1, index],
+      [0.95, 1]
+    );
+
+    const opacity = interpolate(
+      animatedValue.value + maxVisibleItem,
+      [index, index + 1],
+      [0, 1]
+    );
+
     return {
       transform: [
         { translateX: translateX.value },
-        { scale: 1 - index * 0.05 },
+        { scale: currentIndex ? 1 : scale },
         {
-          translateY: index * -30,
+          translateY: currentItem ? 0 : translateY,
         },
         { rotateZ: currentItem ? `${direction.value * rotateZ}deg` : `0deg` },
       ],
-      opacity: index < maxVisibleItem ? 1 : 0,
+      opacity: index < maxVisibleItem + currentIndex ? 1 : opacity,
     };
   });
   return (

@@ -19,7 +19,7 @@ export default function QuestionsScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.cardContainer}>
           {newData.map((item, index) => {
-            if (index > MAX) {
+            if (index > currentIndex + MAX || index < currentIndex) {
               return null;
             }
             return (
@@ -31,6 +31,8 @@ export default function QuestionsScreen() {
                 maxVisibleItem={MAX}
                 currentIndex={currentIndex}
                 animatedValue={animatedValue}
+                setCurrentIndex={setCurrentIndex}
+                setNewData={setNewData}
               />
             );
           })}
