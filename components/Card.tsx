@@ -1,3 +1,4 @@
+// components/Card.tsx
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import React from "react";
 import { DataType } from "@/src/data/data";
@@ -11,6 +12,7 @@ import Animated, {
   useSharedValue,
   withTiming,
   runOnJS,
+  Extrapolate,
 } from "react-native-reanimated";
 
 type Props = {
@@ -23,6 +25,8 @@ type Props = {
   setNewData: React.Dispatch<React.SetStateAction<DataType[]>>;
   setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
   newData: DataType[];
+  setShowLeftScreen: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowRightScreen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const Card = ({
@@ -35,15 +39,19 @@ const Card = ({
   setCurrentIndex,
   setNewData,
   newData,
+  setShowLeftScreen,
+  setShowRightScreen,
 }: Props) => {
   const { width } = useWindowDimensions();
   const translateX = useSharedValue(0);
   const direction = useSharedValue(0);
+  const overlayOpacity = useSharedValue(0);
   const pan = Gesture.Pan()
     .onUpdate((e) => {
       const isSwipeRight = e.translationX > 0;
       direction.value = isSwipeRight ? 1 : -1;
       console.log(e.translationX);
+      console.log("🟨 PAN UPDATE", e.translationX);
       if (currentIndex === index) {
         translateX.value = e.translationX;
         animatedValue.value = interpolate(
@@ -53,26 +61,44 @@ const Card = ({
         );
         console.log(animatedValue.value);
       }
+      overlayOpacity.value = interpolate(
+        Math.abs(e.translationX),
+        [0, 150],
+        [0, 1],
+        Extrapolate.CLAMP
+      );
     })
 
     .onEnd((e) => {
       if (currentIndex === index) {
         if (Math.abs(e.translationX) > 150 || Math.abs(e.velocityX) > 1000) {
+          if (direction.value === -1) {
+            runOnJS(setShowLeftScreen)(true);
+          } else if (direction.value === 1) {
+            runOnJS(setShowRightScreen)(true);
+          }
           translateX.value = withTiming(
             (width + 200) * direction.value,
             {},
             () => {
               runOnJS(setCurrentIndex)(currentIndex + 1);
-              runOnJS(setNewData)([...newData, newData[currentIndex]])
+              runOnJS(setNewData)([...newData, newData[currentIndex]]);
             }
           );
           animatedValue.value = withTiming(currentIndex + 1);
         } else {
           translateX.value = withTiming(0, { duration: 500 });
           animatedValue.value = withTiming(currentIndex);
+          overlayOpacity.value = withTiming(0);
         }
       }
     });
+  const tap = Gesture.Tap().onEnd(() => {
+    console.log("🟦 TAP GESTURE FIRED");
+    runOnJS(setShowLeftScreen)(false);
+    runOnJS(setShowRightScreen)(false);
+  });
+  const composed = Gesture.Exclusive(pan, tap);
 
   const animatedStyle = useAnimatedStyle(() => {
     const currentItem = index === currentIndex;
@@ -114,7 +140,7 @@ const Card = ({
     };
   });
   return (
-    <GestureDetector gesture={pan}>
+    <GestureDetector gesture={composed}>
       <Animated.View
         style={[
           styles.container,
