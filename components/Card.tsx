@@ -50,7 +50,6 @@ const Card = ({
     .onUpdate((e) => {
       const isSwipeRight = e.translationX > 0;
       direction.value = isSwipeRight ? 1 : -1;
-      console.log(e.translationX);
       console.log("🟨 PAN UPDATE", e.translationX);
       if (currentIndex === index) {
         translateX.value = e.translationX;
@@ -98,7 +97,7 @@ const Card = ({
     runOnJS(setShowLeftScreen)(false);
     runOnJS(setShowRightScreen)(false);
   });
-  const composed = Gesture.Exclusive(pan, tap);
+
 
   const animatedStyle = useAnimatedStyle(() => {
     const currentItem = index === currentIndex;
@@ -140,7 +139,7 @@ const Card = ({
     };
   });
   return (
-    <GestureDetector gesture={composed}>
+    <GestureDetector gesture={pan}>
       <Animated.View
         style={[
           styles.container,

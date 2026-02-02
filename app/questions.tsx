@@ -5,66 +5,77 @@ import { Stack } from "expo-router";
 import { AppButton } from "@/components/AppButton";
 import "react-native-reanimated";
 import React, { useState } from "react";
-import { GestureHandlerRootView, Pressable } from "react-native-gesture-handler";
+import {
+  GestureHandlerRootView,
+  Pressable,
+} from "react-native-gesture-handler";
 import { data } from "@/src/data/data";
 import Card from "@/components/Card";
-import { useSharedValue } from "react-native-reanimated";
+import { useSharedValue, runOnJS } from "react-native-reanimated";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 export default function QuestionsScreen() {
   const [newData, setNewData] = useState([...data, ...data]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showLeftScreen, setShowLeftScreen] = useState(false);
-    const [showRightScreen, setShowRightScreen] = useState(false);
+  const [showRightScreen, setShowRightScreen] = useState(false);
   const animatedValue = useSharedValue(0);
   const MAX = 3;
+  const tap = Gesture.Tap().onEnd(() => {
+    console.log("🟦 TAP GESTURE FIRED");
+    runOnJS(setShowLeftScreen)(false);
+    runOnJS(setShowRightScreen)(false);
+  });
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.cardContainer}>
-          {newData.map((item, index) => {
-            if (index > currentIndex + MAX || index < currentIndex) {
-              return null;
-            }
-            return (
-              <Card
-                item={item}
-                index={index}
-                key={index}
-                dataLength={newData.length}
-                maxVisibleItem={MAX}
-                currentIndex={currentIndex}
-                animatedValue={animatedValue}
-                setCurrentIndex={setCurrentIndex}
-                setNewData={setNewData}
-                newData={newData}
-                setShowLeftScreen={setShowLeftScreen}
-                setShowRightScreen={setShowRightScreen}
-              />
-            );
-          })}
-        </View>
-        {showLeftScreen && (
-          <View style={StyleSheet.absoluteFill}>
-            <Pressable
-              style={styles.leftScreen}
-              onPress={() => {
-                console.log("🟥 PRESSABLE LEFT SCREEN PRESSED");
-                setShowLeftScreen(false);
-              }}
-              onPressIn={() => console.log("🟥 PRESS IN")}
-              onPressOut={() => console.log("🟥 PRESS OUT")}
-              android_disableSound
-            />
+      <GestureDetector gesture={tap}>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.cardContainer}>
+            {newData.map((item, index) => {
+              if (index > currentIndex + MAX || index < currentIndex) {
+                return null;
+              }
+              return (
+                <Card
+                  item={item}
+                  index={index}
+                  key={index}
+                  dataLength={newData.length}
+                  maxVisibleItem={MAX}
+                  currentIndex={currentIndex}
+                  animatedValue={animatedValue}
+                  setCurrentIndex={setCurrentIndex}
+                  setNewData={setNewData}
+                  newData={newData}
+                  setShowLeftScreen={setShowLeftScreen}
+                  setShowRightScreen={setShowRightScreen}
+                />
+              );
+            })}
           </View>
-        )}
-        {showRightScreen && (
-          <Pressable
-            pointerEvents="auto"
-            style={styles.rightScreen}
-            onPress={() => setShowRightScreen(false)}
-          />
-        )}
-      </SafeAreaView>
+          {showLeftScreen && (
+            <View style={StyleSheet.absoluteFill}>
+              <Pressable
+                style={styles.leftScreen}
+                onPress={() => {
+                  console.log("🟥 PRESSABLE LEFT SCREEN PRESSED");
+                  setShowLeftScreen(false);
+                }}
+                onPressIn={() => console.log("🟥 PRESS IN")}
+                onPressOut={() => console.log("🟥 PRESS OUT")}
+                android_disableSound
+              />
+            </View>
+          )}
+          {showRightScreen && (
+            <Pressable
+              pointerEvents="auto"
+              style={styles.rightScreen}
+              onPress={() => setShowRightScreen(false)}
+            />
+          )}
+        </SafeAreaView>
+      </GestureDetector>
     </GestureHandlerRootView>
   );
 }
